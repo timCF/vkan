@@ -26,8 +26,8 @@
 
 
 (defn append_to_friends_file [iam myfriends]
-                        (->> (concat [iam] myfriends)
-                             (clojure.string/join ",")
+                        (->> (map #(str iam "," %) myfriends)
+                             (clojure.string/join "\n")
                              ((fn [st] (str st "\n")))
                              ((fn [st] (spit "friends.txt" st :append true)))))
 
@@ -97,6 +97,21 @@
                                      {:error err} (println err)
                                      res (swap! buffer #(add_new_only % res)))))))
 
+(defn get_inner_friends []
+  (safe-delete "friends.txt")
+  (let [input (vec (map #(:uid %) @buffer))]
+    (doseq [uid input]
+      (println (str "getting inner friends for " uid))
+      (Thread/sleep 500)
+      (match (vkapi/get_friends_uids {:uid uid :access_token token})
+             {:error error} (println error)
+             []  (println (str "no friends for " uid))
+             lst (->> (filter (fn [el] (some #(= (str el) (str %)) input))
+                              lst)
+                      (vec)
+                      (append_to_friends_file uid))))
+    (println "done, file friends.txt overwrited")))
+
 (defn menu_add []
   (println "1 - manual \n2 - from group \n3 - add friends")
   (match (read-line)
@@ -120,12 +135,13 @@
   (println "done, json.txt overwrited"))
 
 (defn menu []
-  (println "\nMenu : \n1 - add to buffer \n2 - filter buffer \n3 - export buffer to csv \n4 - export buffer to json")
+  (println "\nMenu : \n1 - add to buffer \n2 - filter buffer \n3 - export buffer to csv \n4 - export buffer to json \n5 - get inner friends network for buffer")
   (match (read-line)
          "1" (menu_add)
          "2" (filter_buffer)
          "3" (import_buffer_csv)
          "4" (import_buffer_json)
+         "5" (get_inner_friends)
          _ (println "Incorrect command"))
   (println "Buffer size now is " (count @buffer))
   (menu))

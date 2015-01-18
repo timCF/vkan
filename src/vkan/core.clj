@@ -4,7 +4,8 @@
   (:use [defun :only [defun]])
   (require [vkclj.core :as vkapi])
   (require [clojure.data.json :as json])
-  (require [vkan.csv_convert :as csv]))
+  (require [vkan.csv_convert :as csv])
+  (require [clj-yaml.core :as yaml]))
 
 (def buffer (atom []))
 (def token "20ae6c1b3a945bf492b985e23371ca925e7897979ce036491878edf123c0f33f5b2b245d912e6bb6f02b3")
@@ -23,6 +24,13 @@
                                     old))]
       (vec (concat filtered_old new)))))
 
+
+(defn append_to_friends_file [iam myfriends]
+                        (->> (concat [iam] myfriends)
+                             (clojure.string/join ",")
+                             ((fn [st] (str st "\n")))
+                             ((fn [st] (spit "friends.txt" st :append true)))))
+
 (defun get_friends_lst
        ([(lst :guard vector?)] (get_friends_lst {:progress 0 :of (count lst) :res [] :rest lst}))
        ([{:res res :rest []}]   (println (str "got " (count res) " new users ... it will take some time to handle them"))
@@ -35,12 +43,33 @@
              (let [newres (match callres
                                  {:error _} res
                                  _ (vec (concat res callres )))]
-               (match callres {:error error} (println error) _ :ok)
+               (match callres {:error error} (println error) _ (append_to_friends_file this callres))
                (get_friends_lst {:progress (+ pg 1)
                                  :of of
                                  :res newres
                                  :rest todo}))))))
+;; work with files
+(defn safe-delete [file-path]
+  (if (.exists (clojure.java.io/file file-path))
+    (try
+      (clojure.java.io/delete-file file-path)
+      (catch Exception e (str "exception: " (.getMessage e))))
+    false))
+(defn get_config []
+  (if (.exists (clojure.java.io/file "config.yml"))
+    (try
+      (let [res (->> (slurp "config.yml")
+                     (yaml/parse-string)
+                     (:filters))]
+        (case (map? res)
+          true res
+          false {:error (str "error while parsing config, got " res)}))
+      (catch Exception e {:error (str "error while parsing config" e)}))
+    {:error "config.yml is not exist"}))
+
+
 (defn add_friends_to_buffer []
+  (safe-delete "friends.txt")
   (let [ids (vec (map #(:uid %) @buffer))]
     (case (= 0 (count ids))
       true (println "Empty buffer")
@@ -49,7 +78,8 @@
                    [] (println "Got empty set ... ")
                    vect (match (vkapi/users_info {:uids vect :access_token token})
                                {:error err} (println err)
-                               res (swap! buffer #(add_new_only % res)))))))
+                               res (swap! buffer #(add_new_only % res))))))
+  (println "done, file friends.txt overwrited"))
 
 (defn menu_add_proc [command]
   (println "Enter id")
@@ -74,13 +104,19 @@
          "2" (menu_add_proc "2")
          "3" (add_friends_to_buffer)
          _   (println "Incorrect command")))
-
-(defn filter_buffer [] (println "this is not avalible yet (((( "))
+(defn filter_buffer_proc [config]
+  (let [some_keys (keys config)]
+    (swap! buffer (fn [lst]
+                    (filter (fn [el] (every? #(= (str (% el)) (str (% config))) some_keys)) lst)))))
+(defn filter_buffer []
+  (match (get_config)
+         {:error error} (println error)
+         config (filter_buffer_proc config)))
 (defn import_buffer_csv []
-  (spit "csv.csv" (csv/encode @buffer))
+  (spit "users.csv" (csv/encode @buffer) :encoding "Cp1251")
   (println "done, csv.csv overwrited"))
 (defn import_buffer_json []
-  (spit "json.txt" (json/write-str @buffer))
+  (spit "users.txt" (json/write-str @buffer) :encoding "Cp1251")
   (println "done, json.txt overwrited"))
 
 (defn menu []

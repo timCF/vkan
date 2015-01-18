@@ -50,4 +50,4 @@
     (let [my_keys (keys (first plain))]
       (->> (concat [my_keys] (map (fn [el] (map #(% el) my_keys)) plain))
            (map #(map to_string %))
-           (write-csv)))))
+           ((fn [el] (write-csv el :force-quote true)))))))

@@ -11,3 +11,6 @@ pom.xml.asc
 /.DS_Store
 csv.csv
 json.txt
+users.txt
+users.csv
+friends.txt

@@ -11,6 +11,7 @@
                     [defun "0.2.0-RC"]
                     [org.clojure/data.json "0.2.5"]
                     [clojure-csv/clojure-csv "2.0.1"]
+                    [clj-yaml "0.4.0"]
                   ]
   :main ^:skip-aot vkan.core
   :target-path "target/%s"

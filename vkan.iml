@@ -13,15 +13,16 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Leiningen: clojure-complete:0.2.3" level="project" />
+    <orderEntry type="library" name="Leiningen: clojure-csv:2.0.1" level="project" />
     <orderEntry type="library" name="Leiningen: defun:0.2.0-RC" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.6.0" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/core.match:0.2.1" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/data.json:0.2.5" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.nrepl:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: pmclj:0.1.0-20141125.221109-2" level="project" />
-    <orderEntry type="library" name="Leiningen: vkclj:0.1.0-20150115.210729-3" level="project" />
+    <orderEntry type="library" name="Leiningen: vkclj:0.1.0-20150117.130443-5" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.macro:0.1.2" level="project" />
     <orderEntry type="library" name="Leiningen: clj-http:1.0.1" level="project" />
-    <orderEntry type="library" name="Leiningen: org.clojure/data.json:0.2.5" level="project" />
     <orderEntry type="library" name="Leiningen: cheshire:5.3.1" level="project" />
     <orderEntry type="library" name="Leiningen: com.cognitect/transit-clj:0.8.259" level="project" />
     <orderEntry type="library" name="Leiningen: commons-codec:1.9" level="project" />

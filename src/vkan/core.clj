@@ -8,7 +8,7 @@
   (require [clj-yaml.core :as yaml]))
 
 (def buffer (atom []))
-(def token "20ae6c1b3a945bf492b985e23371ca925e7897979ce036491878edf123c0f33f5b2b245d912e6bb6f02b3")
+(defn token [] (slurp "./token.txt"))
 
 
 (defn check_str_id [subj]
@@ -39,7 +39,7 @@
          (let [todo (vec (rest lst)) this (first lst)]
            (Thread/sleep 500)
            (println (str "progress " pg " of " of " , result " (count res)))
-           (let [callres (vkapi/get_friends_uids {:uid this :access_token token})]
+           (let [callres (vkapi/get_friends_uids {:uid this :access_token (token)})]
              (let [newres (match callres
                                  {:error _} res
                                  _ (vec (concat res callres )))]
@@ -76,7 +76,7 @@
       false (match (get_friends_lst ids)
                    {:error error} (println error)
                    [] (println "Got empty set ... ")
-                   vect (match (vkapi/users_info {:uids vect :access_token token})
+                   vect (match (vkapi/users_info {:uids vect :access_token (token)})
                                {:error err} (println err)
                                res (swap! buffer #(add_new_only % res))))))
   (println "done, file friends.txt overwrited"))
@@ -86,14 +86,14 @@
   (match (-> (read-line) (check_str_id) )
          {:error err} (println err)
          id (case command
-              "1" (match (vkapi/users_info {:uids [(read-string id)] :access_token token})
+              "1" (match (vkapi/users_info {:uids [(read-string id)] :access_token (token)})
                          {:error err} (println err)
                          [res] (swap! buffer #(add_new_only % [res]))
                          ans (println (str "Unexpected ans, ignore : " ans)))
-              "2" (match (vkapi/get_group_members {:gid id :access_token token})
+              "2" (match (vkapi/get_group_members {:gid id :access_token (token)})
                          {:error err} (println err)
                          [] (println "Got empty set ... ")
-                         vect (match (vkapi/users_info {:uids (vec (map read-string (map str vect))) :access_token token})
+                         vect (match (vkapi/users_info {:uids (vec (map read-string (map str vect))) :access_token (token)})
                                      {:error err} (println err)
                                      res (swap! buffer #(add_new_only % res)))))))
 
@@ -103,7 +103,7 @@
     (doseq [uid input]
       (println (str "getting inner friends for " uid))
       (Thread/sleep 500)
-      (match (vkapi/get_friends_uids {:uid uid :access_token token})
+      (match (vkapi/get_friends_uids {:uid uid :access_token (token)})
              {:error error} (println error)
              []  (println (str "no friends for " uid))
              lst (->> (filter (fn [el] (some #(= (str el) (str %)) input))
